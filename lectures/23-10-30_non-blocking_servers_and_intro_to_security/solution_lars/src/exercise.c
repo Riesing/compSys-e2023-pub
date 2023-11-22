@@ -33,16 +33,20 @@ void get_data_sha(const char* sourcedata, hashdata_t hash, uint32_t data_size,
  * Combine a password and salt together and hash the result to form the 
  * 'signature'. The result is written to the 'hash' variable
  */
-void get_signature(char* password, char* salt, hashdata_t* hash)
+void get_signature(char* password, char* salt, hashdata_t hash)
 {
     char to_hash[strlen(password) + strlen(salt)];
-
 
     // TODO Put some code in here so that to_hash contains the password and 
     // salt and is then hashed
 
     // You can use this to confirm that you are hashing what you think you are
-    // hashing
+    // hashing 
+
+    memcpy(to_hash, password, strlen(password));
+    memcpy(to_hash+strlen(password), salt, strlen(salt));
+    get_data_sha(to_hash, hash, strlen(password)+strlen(salt), SHA256_HASH_SIZE);
+
     for (uint8_t i=0; i<strlen(to_hash); i++)
     {
         printf("[%c]", to_hash[i]);
@@ -73,10 +77,12 @@ int main()
 
     // Register the signature
     hashdata_t signature;
-    get_signature(password, salt, &signature);
+    get_signature(password, salt, signature);
 
     // Setup the socket and connect. Note hard coded port and host
-    network_socket = compsys_helper_open_clientfd("0.0.0.0", "12345");
+    char* ip = "0.0.0.0";
+    char* port = "12345";
+    network_socket = compsys_helper_open_clientfd(ip, port);
 
     // Send the request
     write(network_socket, signature, SHA256_HASH_SIZE);
